@@ -1,0 +1,33 @@
+---
+version: '3.6'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: bash -c "go build && ./api"
+    volumes:
+      - .:/go/src/github.com/recipey/api
+    environment:
+      APP_DB_USERNAME: recipey
+      APP_DB_PASSWORD: recipey
+      APP_DB_NAME: recipey_dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:10.3-alpine
+    environment:
+      POSTGRES_USER: recipey
+      POSTGRES_PASSWORD: recipey
+      POSTGRES_DB: recipey_dev
+
+    # makes sure on every startup we don't lose data from
+    # previous container shutting down so we persist data
+    # to host env at ~/.data/postgresql
+    volumes:
+      - ~/.data/postgresql:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
