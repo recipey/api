@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
-    command: bash -c "go build && ./api"
+    command: bash -c "go build -o bin/api && bin/api"
     volumes:
       - .:/go/src/github.com/recipey/api
     environment:
