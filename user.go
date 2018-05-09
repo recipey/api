@@ -50,6 +50,9 @@ func getUsers(db *sql.DB, start, count int) ([]user, error) {
 		return nil, err
 	}
 
+	// deferred function isn't called until the surrounding function returns
+	// if you have multiple defer functions they're executed in LIFO order
+	// any arguments you have for the function are evaluated immediately
 	defer rows.Close()
 
 	users := []user{}
