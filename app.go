@@ -19,7 +19,7 @@ type App struct {
 
 // Initialize a database connection
 func (a *App) Initialize(user, password, dbname string) {
-	// docker-compose sets up the postgres database on network host db for now
+	// docker-compose sets up the postgres database on network host named `db` for now
 	connStr :=
 		fmt.Sprintf("host=db user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
 
@@ -49,6 +49,11 @@ func (a *App) Initialize(user, password, dbname string) {
 	a.Router.HandleFunc("/recipes/{id:[0-9]+}", a.GetRecipe).Methods("GET")
 	a.Router.HandleFunc("/recipes/{id:[0-9]+}", a.UpdateRecipe).Methods("PUT")
 	a.Router.HandleFunc("/recipes/{id:[0-9]+}", a.DeleteRecipe).Methods("DELETE")
+
+	// protected endpoint requiring jwt auth
+	a.Router.HandleFunc("/private", a.privateResource).Methods("GET", "POST", "PUT", "PATCH", "DELETE")
+
+	a.Router.Use(loggingMiddleware)
 
 	http.Handle("/", a.Router)
 }
@@ -252,6 +257,11 @@ func (a *App) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, map[string]string{"data": "success"})
+}
+
+// test auth in this route
+func (a *App) privateResource(w http.ResponseWriter, r *http.Request) {
+	return
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
