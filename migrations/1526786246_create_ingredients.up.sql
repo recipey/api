@@ -2,4 +2,4 @@ CREATE TABLE IF NOT EXISTS ingredients (
   id SERIAL PRIMARY KEY NOT NULL,
   name TEXT,
   uuid TEXT UNIQUE
-)
+);
