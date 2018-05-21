@@ -31,6 +31,13 @@ Run up migration
 Run down migration
 `bin/migrate -path migrations/ -database postgres://recipey:recipey@db:5432/recipey_dev?sslmode=disable down`
 
+### Bad migration
+If you're migration failed then the last migration will have its version kept in the
+schema_migrations table marking it as dirty. To fix this you must rewrite your migation to
+have no errors and then run `bin/migrate -path migrations/ -database postgres://recipey:recipey@db:5432/recipey_dev?sslmode=disable force <migration_version>`
+to undirty the version. Then run `bin/migrate -path migrations/ -database postgres://recipey:recipey@db:5432/recipey_dev?sslmode=disable down 1`
+to undo the migration. You can now run the migration up command.
+
 ## Development
 Start the app by running `docker-compose up` and when ready to test code changes recompile the app
 by running `docker-compose restart api`. As part of the `docker-compose.yml` file it will rebuild
