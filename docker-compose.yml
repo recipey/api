@@ -12,7 +12,6 @@ services:
       APP_DB_USERNAME: recipey
       APP_DB_PASSWORD: recipey
       APP_DB_NAME: recipey_dev
-      PGDATA: /tmp
     ports:
       - "8080:8080"
     depends_on:
@@ -24,7 +23,6 @@ services:
       POSTGRES_USER: recipey
       POSTGRES_PASSWORD: recipey
       POSTGRES_DB: recipey_dev
-      PGDATA: /tmp
 
     # makes sure on every startup we don't lose data from
     # previous container shutting down so we persist data
