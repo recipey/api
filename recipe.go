@@ -63,3 +63,43 @@ func (r *recipe) deleteRecipe(db *sql.DB) error {
 
 	return err
 }
+
+func searchRecipes(db *sql.DB, term string) ([]recipe, error) {
+	//postgresql query need typo correction (fuzzy matching?) and full text search
+	//
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// defer rows.Close()
+
+	recipes := []recipe{}
+
+	// Test data
+	recipes = append(recipes, recipe{
+		ID: 1,
+		Name: "Fried Rice",
+		Author: "Betty",
+		ImageUrl: "https://www.spendwithpennies.com/wp-content/uploads/2016/02/fried-rice-recipe-21.jpg",
+		SourceUrl: "https://www.spendwithpennies.com/easy-fried-rice-recipe/",
+	})
+
+	recipes = append(recipes, recipe{
+		ID: 2,
+		Name: "Steamed Rice",
+		Author: "Billy",
+		ImageUrl: "https://assets.marthastewart.com/styles/wmax-300/d9/06edf19_e/06edf19_e_vert.jpg?itok=gGqkyPnq",
+		SourceUrl: "https://www.marthastewart.com/355435/best-steamed-rice",
+	})
+
+	// for rows.Next() {
+	// 	var r recipe
+	// 	if err := rows.Scan(&r.ID, &r.Name, &r.Author, &r.ImageUrl, &r.SourceUrl); err != nil {
+	// 		return nil, err
+	// 	}
+	//
+	// 	recipes = append(recipes, r)
+	// }
+
+	return recipes, nil
+}

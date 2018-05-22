@@ -50,6 +50,8 @@ func (a *App) Initialize(user, password, dbname string) {
 	a.Router.HandleFunc("/recipes/{id:[0-9]+}", a.UpdateRecipe).Methods("PUT")
 	a.Router.HandleFunc("/recipes/{id:[0-9]+}", a.DeleteRecipe).Methods("DELETE")
 
+	a.Router.HandleFunc("/searchRecipes/{term}", a.SearchRecipes).Methods("GET")
+
 	http.Handle("/", a.Router)
 }
 
@@ -252,6 +254,23 @@ func (a *App) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, map[string]string{"data": "success"})
+}
+
+//TODO
+func (a *App) SearchRecipes(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	term, success := vars["term"]
+	if !success {
+		respondWithError(w, http.StatusBadRequest, "Invalid search parameters")
+	}
+
+	recipes, err := searchRecipes(a.DB, term)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+	}
+
+	respondWithJSON(w, http.StatusOK, recipes)
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
