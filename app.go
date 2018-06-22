@@ -40,7 +40,7 @@ func (a *App) Initialize(user, password, dbname string) {
 	recipes_router := RecipesRouter{DB: a.DB}
 	recipes_router.Route(a.Router)
 
-	registration_router := RegistrationRouter{}
+	registration_router := RegistrationRouter{DB: a.DB}
 	registration_router.Route(a.Router)
 
 	// protected endpoint requiring jwt auth

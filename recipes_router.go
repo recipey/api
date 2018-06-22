@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -28,7 +29,7 @@ func (rr *RecipesRouter) ListRecipes(w http.ResponseWriter, r *http.Request) {
 	recipes, err := getRecipes(rr.DB, 0, 10)
 
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err)
 	}
 
 	respondWithJSON(w, http.StatusOK, recipes)
@@ -39,13 +40,13 @@ func (rr *RecipesRouter) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
 	if err := decoder.Decode(&rec); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid request payload"))
 		return
 	}
 	defer r.Body.Close()
 
 	if err := rec.createRecipe(rr.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -57,7 +58,7 @@ func (rr *RecipesRouter) GetRecipe(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(vars["id"])
 
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid recipe ID")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid recipe ID"))
 		return
 	}
 
@@ -65,9 +66,9 @@ func (rr *RecipesRouter) GetRecipe(w http.ResponseWriter, r *http.Request) {
 	if err := rec.getRecipe(rr.DB); err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Recipe not found")
+			respondWithError(w, http.StatusNotFound, errors.New("Recipe not found"))
 		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respondWithError(w, http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -79,14 +80,14 @@ func (rr *RecipesRouter) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid recipe ID")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid recipe ID"))
 		return
 	}
 
 	var rec recipe
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&rec); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -94,7 +95,7 @@ func (rr *RecipesRouter) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	rec.ID = id
 
 	if err := rec.updateRecipe(rr.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -105,13 +106,13 @@ func (rr *RecipesRouter) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid recipe ID")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid recipe ID"))
 		return
 	}
 
 	rec := recipe{ID: id}
 	if err := rec.deleteRecipe(rr.DB); err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error())
+		respondWithError(w, http.StatusBadRequest, err)
 		return
 	}
 
