@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strings"
@@ -14,7 +15,7 @@ func authMiddleware(next http.Handler) http.Handler {
 
 		// TODO: add function to authenticate token
 		if bearer != "Bearer" {
-			respondWithError(w, http.StatusUnauthorized, "Request could not be authorized.")
+			respondWithError(w, http.StatusUnauthorized, errors.New("Request could not be authorized."))
 		}
 
 		log.Println(token)

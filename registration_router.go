@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -27,40 +28,13 @@ func (rr *RegistrationRouter) RegisterUser(w http.ResponseWriter, r *http.Reques
 	// calling decode onto user struct
 	// NOTE: Decode will only work if the user struct maps the json key to the struct field
 	if err := decoder.Decode(&u); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid request payload"))
 		return
 	}
 
-	errors := map[string]string{}
-
-	// check for required arguments
-	if u.Username == "" {
-		errors["username"] = "username is required"
-	}
-
-	if u.Email == "" {
-		errors["email"] = "email is required"
-	}
-
-	if u.Password == "" {
-		errors["password"] = "password is required"
-	}
-
-	if u.Password != u.PasswordConfirmation {
-		errors["password_confirmation"] = "password confirmation does not match password"
-	}
-
-	if len(errors) > 0 {
-		json_str, err := json.Marshal(errors)
-
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-		} else {
-			err_msg := string(json_str[:])
-			respondWithError(w, http.StatusBadRequest, err_msg)
-		}
-
-		return
+	if err := u.createUser(rr.DB); err != nil {
+		// hmm need to respond with either StatusBadRequest or StatusInternalServerError
+		// how does the error object work and can it be distinguished?
 	}
 
 	// TODO: this should respond with json containing jwt

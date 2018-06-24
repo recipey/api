@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -28,7 +30,7 @@ func (ur *UsersRouter) ListUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := getUsers(ur.DB, 0, 10)
 
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err)
 	}
 
 	respondWithJSON(w, http.StatusOK, users)
@@ -38,13 +40,13 @@ func (ur *UsersRouter) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid user ID")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid user ID"))
 		return
 	}
 
 	u := user{ID: id}
 	if err := u.deleteUser(ur.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -55,7 +57,7 @@ func (ur *UsersRouter) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid user ID")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid user ID"))
 		return
 	}
 
@@ -63,14 +65,14 @@ func (ur *UsersRouter) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	// maps values from json that match back to struct
 	if err := decoder.Decode(&u); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid request payload"))
 		return
 	}
 	defer r.Body.Close()
 	u.ID = id
 
 	if err := u.updateUser(ur.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -82,7 +84,7 @@ func (ur *UsersRouter) GetUser(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(vars["id"])
 
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid user ID")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid user ID"))
 		return
 	}
 
@@ -90,9 +92,9 @@ func (ur *UsersRouter) GetUser(w http.ResponseWriter, r *http.Request) {
 	if err := u.getUser(ur.DB); err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "User not found")
+			respondWithError(w, http.StatusNotFound, errors.New("User not found"))
 		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
+			respondWithError(w, http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -105,13 +107,14 @@ func (ur *UsersRouter) CreateUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
 	if err := decoder.Decode(&u); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		respondWithError(w, http.StatusBadRequest, errors.New("Invalid request payload"))
 		return
 	}
 	defer r.Body.Close()
 
 	if err := u.createUser(ur.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		fmt.Println(err)
+		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
 
