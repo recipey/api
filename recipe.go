@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 )
 
 type recipe struct {
@@ -10,6 +12,10 @@ type recipe struct {
 	Author    string `json:"author"`
 	ImageUrl  string `json:"image_url"`
 	SourceUrl string `json:"source_url"`
+}
+
+type recipeError struct {
+	Errors map[string]string
 }
 
 func getRecipes(db *sql.DB, start, count int) ([]recipe, error) {
@@ -40,6 +46,15 @@ func (r *recipe) getRecipe(db *sql.DB) error {
 }
 
 func (r *recipe) createRecipe(db *sql.DB) error {
+	re := &recipeError{Errors: map[string]string{}}
+	if r.Name == "" {
+		re.Errors["name"] = "name is required"
+	}
+
+	if len(re.Errors) > 0 {
+		return re
+	}
+
 	err := db.QueryRow(
 		"INSERT INTO recipes(name, author, image_url, source_url) VALUES($1, $2, $3, $4) RETURNING id", r.Name, r.Author, r.ImageUrl, r.SourceUrl).Scan(&r.ID)
 
@@ -62,4 +77,22 @@ func (r *recipe) deleteRecipe(db *sql.DB) error {
 	_, err := db.Exec("DELETE FROM recipes WHERE id=$1", r.ID)
 
 	return err
+}
+
+func (re *recipeError) Error() string {
+	errStr, _ := json.Marshal(re.Errors)
+
+	return string(errStr)
+}
+
+func (re *recipeError) MarshalJSON() ([]byte, error) {
+	aux := re.Errors
+
+	jsonStr, err := json.Marshal(aux)
+
+	if err != nil {
+		return []byte{}, fmt.Errorf("decode recipeError: %v", err)
+	}
+
+	return jsonStr, nil
 }
