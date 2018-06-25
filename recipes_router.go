@@ -124,7 +124,7 @@ func (rr *RecipesRouter) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rr *RecipesRouter) listHardCoded(w http.ResponseWriter, r *http.Request) {
-	data := []byte(`
+	data := []byte(`{
 		"recipes": [{
 			"recipeId": 1,
 			"recipeImageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCQaBD-kga2C-NKq0WSRWAPouX-dNFeCKntpHrKhs58hV36t93",
@@ -134,6 +134,7 @@ func (rr *RecipesRouter) listHardCoded(w http.ResponseWriter, r *http.Request) {
 			"recipeImageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCQaBD-kga2C-NKq0WSRWAPouX-dNFeCKntpHrKhs58hV36t93",
 			"recipeName": "Chicken Tikki Masala"
 		}]
+	}
 	`)
 
 	w.Header().Set("Content-Type", "application/json")
