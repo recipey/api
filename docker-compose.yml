@@ -12,6 +12,7 @@ services:
       APP_DB_USERNAME: recipey
       APP_DB_PASSWORD: recipey
       APP_DB_NAME: recipey_dev
+      APP_DB_URL: postgres://recipey:recipey@db:5432/recipey_dev?sslmode=disable
     ports:
       - "8080:8080"
     depends_on:
