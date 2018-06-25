@@ -22,6 +22,10 @@ func (rr *RecipesRouter) Route(router *mux.Router) {
 	rr.Subrouter.HandleFunc("/{id:[0-9]+}", rr.GetRecipe).Methods("GET")
 	rr.Subrouter.HandleFunc("/{id:[0-9]+}", rr.UpdateRecipe).Methods("PUT")
 	rr.Subrouter.HandleFunc("/{id:[0-9]+}", rr.DeleteRecipe).Methods("DELETE")
+
+	// HARDCODED
+	rr.Subrouter.HandleFunc("/list", rr.listHardCoded).Methods("GET")
+	rr.Subrouter.HandleFunc("/single", rr.getHardCoded).Methods("GET")
 }
 
 func (rr *RecipesRouter) ListRecipes(w http.ResponseWriter, r *http.Request) {
@@ -117,4 +121,36 @@ func (rr *RecipesRouter) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, map[string]string{"data": "success"})
+}
+
+func (rr *RecipesRouter) listHardCoded(w http.ResponseWriter, r *http.Request) {
+	data := []byte(`
+		"recipes": [{
+			"recipeId": 1,
+			"recipeImageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCQaBD-kga2C-NKq0WSRWAPouX-dNFeCKntpHrKhs58hV36t93",
+			"recipeName": "Seared Ahi Tuna Tacos With Guacamole"
+		}, {
+			"recipeId": 2,
+			"recipeImageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCQaBD-kga2C-NKq0WSRWAPouX-dNFeCKntpHrKhs58hV36t93",
+			"recipeName": "Chicken Tikki Masala"
+		}]
+	`)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
+func (rr *RecipesRouter) getHardCoded(w http.ResponseWriter, r *http.Request) {
+	data := []byte(`
+		{
+			"recipeId": 1,
+			"recipeImageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCQaBD-kga2C-NKq0WSRWAPouX-dNFeCKntpHrKhs58hV36t93",
+			"recipeName": "Seared Ahi Tuna Tacos With Guacamole"
+		}
+	`)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
 }
