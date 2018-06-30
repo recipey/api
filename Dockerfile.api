@@ -12,10 +12,21 @@ RUN apk add bash-completion
 RUN apk add --no-cache git
 RUN go get github.com/golang/dep/cmd/dep
 
+# Install migrate cli tool to work with postgres
+RUN go get -u -d github.com/golang-migrate/migrate/cli github.com/lib/pq
+RUN go build -tags 'postgres' -o /usr/local/bin/migrate github.com/golang-migrate/migrate/cli
+
+# Set bash aliases for the container
+RUN echo 'alias migrate-create="migrate create -ext sql -dir migrations"' >> ~/.bashrc
+RUN echo 'alias migrate-up="migrate -path migrations -database $APP_DB_URL up"' >> ~/.bashrc
+RUN echo 'alias migrate-down="migrate -path migrations -database $APP_DB_URL down"' >> ~/.bashrc
+RUN echo 'alias migrate-force="migrate -path migrations -database $APP_DB_URL force"' >> ~/.bashrc
+
 # Gopkg.toml and Gopkg.lock lists project dependencies
 # These layers will only be re-built when Gopkg files are updated
 COPY Gopkg.lock Gopkg.toml /go/src/github.com/recipey/api/
 WORKDIR /go/src/github.com/recipey/api/
+
 # Install library dependencies
 RUN dep ensure -vendor-only
 

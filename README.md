@@ -9,34 +9,33 @@ like run `dep status` to see packages and several attributes like constraint and
 Update dependencies running `dep ensure -update`.
 
 ## Schema management
-Using mattes/migrate to build timestamped sql migrations and to follow some sort of convention.
-When running migrations assumed to be in the api container. << IMPORTANT
+Using `golang-migrate/migrate` to build timestamped sql migrations and to follow some sort of convention.
+When running migrations docker-compose is assumed to be running. << IMPORTANT >>
 
 Either docker-compose run to perform the command in the container or bash into the container
 to run command.
 
-`docker-compose run api bin/migrate create -ext sql -dir migrations <name_of_migration>`
+`docker-compose run api migrate-create <name_of_migration>`
 
 OR
 
-`docker-compose exec api bash` then run additional commands.
+`docker-compose exec api bash` to enter container shell and run additional commands.
 
 ### Create migration
-`bin/migrate create -ext sql -dir migrations <name_of_migration>`
+`migrate-create <name_of_migration>`
 
 ### Run migration
 Run up migration
-`bin/migrate -path migrations/ -database postgres://recipey:recipey@db:5432/recipey_dev?sslmode=disable up`
+`migrate-up <n>` where n is optional integer > 0
 
 Run down migration
-`bin/migrate -path migrations/ -database postgres://recipey:recipey@db:5432/recipey_dev?sslmode=disable down`
+`migrate-down <n>` where n is optional integer > 0
 
 ### Bad migration
 If you're migration failed then the last migration will have its version kept in the
 schema_migrations table marking it as dirty. To fix this you must rewrite your migration to
-have no errors and then run `bin/migrate -path migrations/ -database postgres://recipey:recipey@db:5432/recipey_dev?sslmode=disable force <migration_version>`
-to undirty the version. Then run `bin/migrate -path migrations/ -database postgres://recipey:recipey@db:5432/recipey_dev?sslmode=disable down 1`
-to undo the migration. You can now run the migration up command.
+have no errors and then run `migrate-force <migration_version>` to undirty the version. Then run
+`migrate-down 1` to undo the migration. You can now run the migration up command.
 
 ## Development
 Start the app by running `docker-compose up` and when ready to test code changes recompile the app
