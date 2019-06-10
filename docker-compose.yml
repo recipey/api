@@ -1,5 +1,5 @@
 ---
-version: '3.6'
+version: '3.7'
 services:
   api:
     build:
@@ -17,18 +17,16 @@ services:
       - "8080:8080"
     depends_on:
       - db
-
   db:
-    image: postgres:10.3-alpine
+    image: postgres:11.3-alpine
     environment:
       POSTGRES_USER: recipey
       POSTGRES_PASSWORD: recipey
       POSTGRES_DB: recipey_dev
-
     # makes sure on every startup we don't lose data from
     # previous container shutting down so we persist data
     # to host env at ~/.data/postgresql
     volumes:
-      - ~/.data/postgresql:/var/lib/postgresql/data
+      - ~/.data/recipey/postgresql11.3:/var/lib/postgresql/data
     ports:
       - "5432:5432"
