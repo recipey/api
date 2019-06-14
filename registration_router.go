@@ -16,7 +16,7 @@ type registrationRouter struct {
 func (rr *registrationRouter) route(router *mux.Router) {
 	rr.subrouter = router.PathPrefix("/registration").Subrouter()
 
-	rr.subrouter.HandleFunc("", rr.RegisterUser).Methods("POST")
+	rr.subrouter.HandleFunc("", rr.registerUser).Methods("POST")
 }
 
 func (rr *registrationRouter) registerUser(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +32,7 @@ func (rr *registrationRouter) registerUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := u.createUser(rr.DB); err != nil {
+	if err := u.createUser(rr.db); err != nil {
 		// hmm need to respond with either StatusBadRequest or StatusInternalServerError
 		// how does the error object work and can it be distinguished?
 	}

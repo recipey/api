@@ -24,13 +24,13 @@ func (rr *recipesRouter) route(router *mux.Router) {
 	rr.subrouter.HandleFunc("/{id:[0-9]+}", rr.deleteRecipe).Methods("DELETE")
 
 	// HARDCODED
-	rr.Subrouter.HandleFunc("/list", rr.listHardCoded).Methods("GET")
-	rr.Subrouter.HandleFunc("/single", rr.getHardCoded).Methods("GET")
+	rr.subrouter.HandleFunc("/list", rr.listHardCoded).Methods("GET")
+	rr.subrouter.HandleFunc("/single", rr.getHardCoded).Methods("GET")
 }
 
 func (rr *recipesRouter) listRecipes(w http.ResponseWriter, r *http.Request) {
 	// limit to 10 recipes for now
-	recipes, err := getRecipes(rr.DB, 0, 10)
+	recipes, err := getRecipes(rr.db, 0, 10)
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
@@ -49,7 +49,7 @@ func (rr *recipesRouter) createRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := rec.createRecipe(rr.DB); err != nil {
+	if err := rec.createRecipe(rr.db); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -67,7 +67,7 @@ func (rr *recipesRouter) getRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rec := recipe{ID: id}
-	if err := rec.getRecipe(rr.DB); err != nil {
+	if err := rec.getRecipe(rr.db); err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			respondWithError(w, http.StatusNotFound, errors.New("Recipe not found"))
@@ -98,7 +98,7 @@ func (rr *recipesRouter) updateRecipe(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	rec.ID = id
 
-	if err := rec.updateRecipe(rr.DB); err != nil {
+	if err := rec.updateRecipe(rr.db); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -115,7 +115,7 @@ func (rr *recipesRouter) deleteRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rec := recipe{ID: id}
-	if err := rec.deleteRecipe(rr.DB); err != nil {
+	if err := rec.deleteRecipe(rr.db); err != nil {
 		respondWithError(w, http.StatusBadRequest, err)
 		return
 	}
