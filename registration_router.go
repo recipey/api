@@ -8,18 +8,18 @@ import (
 	"net/http"
 )
 
-type RegistrationRouter struct {
-	Subrouter *mux.Router
-	DB        *sql.DB
+type registrationRouter struct {
+	subrouter *mux.Router
+	db        *sql.DB
 }
 
-func (rr *RegistrationRouter) Route(router *mux.Router) {
-	rr.Subrouter = router.PathPrefix("/registration").Subrouter()
+func (rr *registrationRouter) route(router *mux.Router) {
+	rr.subrouter = router.PathPrefix("/registration").Subrouter()
 
-	rr.Subrouter.HandleFunc("", rr.RegisterUser).Methods("POST")
+	rr.subrouter.HandleFunc("", rr.RegisterUser).Methods("POST")
 }
 
-func (rr *RegistrationRouter) RegisterUser(w http.ResponseWriter, r *http.Request) {
+func (rr *registrationRouter) registerUser(w http.ResponseWriter, r *http.Request) {
 	var u user
 
 	// create decoder that reads from request body stream

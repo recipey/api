@@ -10,59 +10,62 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type App struct {
-	Router *mux.Router
-	DB     *sql.DB
+// TODO: can separate into several pkgs
+// main.go can then just bundle these pkgs together to form an API
+type app struct {
+	router *mux.Router
+	db     *sql.DB
 }
 
 // Initialize a database connection
-func (a *App) Initialize(user, password, dbname string) {
+func (a *app) Initialize(user, password, dbname string) {
 	// docker-compose sets up the postgres database on network host named `db` for now
 	connStr :=
 		fmt.Sprintf("host=db user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
 
 	var err error
 
-	a.DB, err = sql.Open("postgres", connStr)
+	a.db, err = sql.Open("postgres", connStr)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	a.Router = mux.NewRouter()
+	a.router = mux.NewRouter()
 
-	ping_router := PingRouter{}
-	ping_router.Route(a.Router)
+	pingRouter := pingRouter{}
+	pingRouter.route(a.router)
 
-	users_router := UsersRouter{DB: a.DB}
-	users_router.Route(a.Router)
+	usersRouter := usersRouter{db: a.db}
+	usersRouter.route(a.router)
 
-	recipes_router := RecipesRouter{DB: a.DB}
-	recipes_router.Route(a.Router)
+	recipesRouter := recipesRouter{db: a.db}
+	recipesRouter.route(a.router)
 
-	registration_router := RegistrationRouter{DB: a.DB}
-	registration_router.Route(a.Router)
+	registrationRouter := registrationRouter{db: a.db}
+	registrationRouter.route(a.router)
 
 	// protected endpoint requiring jwt auth
-	a.Router.HandleFunc("/private", a.PrivateResource).Methods("GET", "POST", "PUT", "PATCH", "DELETE")
+	a.router.HandleFunc("/private", a.privateResource).Methods("GET", "POST",
+		"PUT", "PATCH", "DELETE")
 
-	a.Router.Use(loggingMiddleware)
+	a.router.Use(loggingMiddleware)
 
-	http.Handle("/", a.Router)
+	http.Handle("/", a.router)
 }
 
 // Start the app
-func (a *App) Run(addr string) {
+func (a *app) Run(addr string) {
 	log.Println("Starting api... Listening on port", addr)
-	log.Fatal(http.ListenAndServe(addr, a.Router))
+	log.Fatal(http.ListenAndServe(addr, a.router))
 }
 
-func (a *App) pingHandler(w http.ResponseWriter, r *http.Request) {
+func (a *app) pingHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "pong!")
 }
 
 // test auth in this route
-func (a *App) PrivateResource(w http.ResponseWriter, r *http.Request) {
+func (a *app) privateResource(w http.ResponseWriter, r *http.Request) {
 	return
 }

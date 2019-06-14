@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	a := App{}
+	a := app{}
 
 	a.Initialize(
 		os.Getenv("APP_DB_USERNAME"),

@@ -9,26 +9,26 @@ import (
 	"strconv"
 )
 
-type RecipesRouter struct {
-	Subrouter *mux.Router
-	DB        *sql.DB
+type recipesRouter struct {
+	subrouter *mux.Router
+	db        *sql.DB
 }
 
-func (rr *RecipesRouter) Route(router *mux.Router) {
-	rr.Subrouter = router.PathPrefix("/recipes").Subrouter()
+func (rr *recipesRouter) route(router *mux.Router) {
+	rr.subrouter = router.PathPrefix("/recipes").Subrouter()
 
-	rr.Subrouter.HandleFunc("", rr.ListRecipes).Methods("GET")
-	rr.Subrouter.HandleFunc("", rr.CreateRecipe).Methods("POST")
-	rr.Subrouter.HandleFunc("/{id:[0-9]+}", rr.GetRecipe).Methods("GET")
-	rr.Subrouter.HandleFunc("/{id:[0-9]+}", rr.UpdateRecipe).Methods("PUT")
-	rr.Subrouter.HandleFunc("/{id:[0-9]+}", rr.DeleteRecipe).Methods("DELETE")
+	rr.subrouter.HandleFunc("", rr.listRecipes).Methods("GET")
+	rr.subrouter.HandleFunc("", rr.createRecipe).Methods("POST")
+	rr.subrouter.HandleFunc("/{id:[0-9]+}", rr.getRecipe).Methods("GET")
+	rr.subrouter.HandleFunc("/{id:[0-9]+}", rr.updateRecipe).Methods("PUT")
+	rr.subrouter.HandleFunc("/{id:[0-9]+}", rr.deleteRecipe).Methods("DELETE")
 
 	// HARDCODED
 	rr.Subrouter.HandleFunc("/list", rr.listHardCoded).Methods("GET")
 	rr.Subrouter.HandleFunc("/single", rr.getHardCoded).Methods("GET")
 }
 
-func (rr *RecipesRouter) ListRecipes(w http.ResponseWriter, r *http.Request) {
+func (rr *recipesRouter) listRecipes(w http.ResponseWriter, r *http.Request) {
 	// limit to 10 recipes for now
 	recipes, err := getRecipes(rr.DB, 0, 10)
 
@@ -39,7 +39,7 @@ func (rr *RecipesRouter) ListRecipes(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, recipes)
 }
 
-func (rr *RecipesRouter) CreateRecipe(w http.ResponseWriter, r *http.Request) {
+func (rr *recipesRouter) createRecipe(w http.ResponseWriter, r *http.Request) {
 	var rec recipe
 	decoder := json.NewDecoder(r.Body)
 
@@ -57,7 +57,7 @@ func (rr *RecipesRouter) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, rec)
 }
 
-func (rr *RecipesRouter) GetRecipe(w http.ResponseWriter, r *http.Request) {
+func (rr *recipesRouter) getRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 
@@ -80,7 +80,7 @@ func (rr *RecipesRouter) GetRecipe(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, rec)
 }
 
-func (rr *RecipesRouter) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
+func (rr *recipesRouter) updateRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -106,7 +106,7 @@ func (rr *RecipesRouter) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, rec)
 }
 
-func (rr *RecipesRouter) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
+func (rr *recipesRouter) deleteRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -123,7 +123,7 @@ func (rr *RecipesRouter) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"data": "success"})
 }
 
-func (rr *RecipesRouter) listHardCoded(w http.ResponseWriter, r *http.Request) {
+func (rr *recipesRouter) listHardCoded(w http.ResponseWriter, r *http.Request) {
 	data := []byte(`{
 		"recipes": [{
 			"recipeId": 1,
@@ -142,7 +142,7 @@ func (rr *RecipesRouter) listHardCoded(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func (rr *RecipesRouter) getHardCoded(w http.ResponseWriter, r *http.Request) {
+func (rr *recipesRouter) getHardCoded(w http.ResponseWriter, r *http.Request) {
 	data := []byte(`
 		{
 			"recipeId": 1,

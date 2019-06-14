@@ -10,24 +10,30 @@ import (
 	"strconv"
 )
 
-type UsersRouter struct {
-	Subrouter *mux.Router
-	DB        *sql.DB
+// TODO: review DDD
+// Create a datastore pkg
+// Routers should not know how to iface with sql or w/e storage
+// One step further is that datastore should not know logic about "domain"
+// User domain, Recipe domain, etc
+// If any of these domains need add'l storage or caching then it should be handled there
+type usersRouter struct {
+	subrouter *mux.Router
+	db        *sql.DB
 }
 
-func (ur *UsersRouter) Route(router *mux.Router) {
-	ur.Subrouter = router.PathPrefix("/users").Subrouter()
+func (ur *usersRouter) route(router *mux.Router) {
+	ur.subrouter = router.PathPrefix("/users").Subrouter()
 
-	ur.Subrouter.HandleFunc("", ur.ListUsers).Methods("GET")
-	ur.Subrouter.HandleFunc("", ur.CreateUser).Methods("POST")
-	ur.Subrouter.HandleFunc("/{id:[0-9]+}", ur.GetUser).Methods("GET")
-	ur.Subrouter.HandleFunc("/{id:[0-9]+}", ur.UpdateUser).Methods("PUT")
-	ur.Subrouter.HandleFunc("/{id:[0-9]+}", ur.DeleteUser).Methods("DELETE")
+	ur.subrouter.HandleFunc("", ur.listUsers).Methods("GET")
+	ur.subrouter.HandleFunc("", ur.createUser).Methods("POST")
+	ur.subrouter.HandleFunc("/{id:[0-9]+}", ur.getUser).Methods("GET")
+	ur.subrouter.HandleFunc("/{id:[0-9]+}", ur.updateUser).Methods("PUT")
+	ur.subrouter.HandleFunc("/{id:[0-9]+}", ur.deleteUser).Methods("DELETE")
 }
 
-func (ur *UsersRouter) ListUsers(w http.ResponseWriter, r *http.Request) {
+func (ur *usersRouter) listUsers(w http.ResponseWriter, r *http.Request) {
 	// limit to 10 users for now, probably remove limit restriction later
-	users, err := getUsers(ur.DB, 0, 10)
+	users, err := getUsers(ur.db, 0, 10)
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
@@ -36,7 +42,7 @@ func (ur *UsersRouter) ListUsers(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, users)
 }
 
-func (ur *UsersRouter) DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (ur *usersRouter) deleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -45,7 +51,7 @@ func (ur *UsersRouter) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := user{ID: id}
-	if err := u.deleteUser(ur.DB); err != nil {
+	if err := u.deleteUser(ur.db); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -53,7 +59,7 @@ func (ur *UsersRouter) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"data": "success"})
 }
 
-func (ur *UsersRouter) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (ur *usersRouter) updateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -71,7 +77,7 @@ func (ur *UsersRouter) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	u.ID = id
 
-	if err := u.updateUser(ur.DB); err != nil {
+	if err := u.updateUser(ur.db); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -79,7 +85,7 @@ func (ur *UsersRouter) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, u)
 }
 
-func (ur *UsersRouter) GetUser(w http.ResponseWriter, r *http.Request) {
+func (ur *usersRouter) getUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 
@@ -89,7 +95,7 @@ func (ur *UsersRouter) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := user{ID: id}
-	if err := u.getUser(ur.DB); err != nil {
+	if err := u.getUser(ur.db); err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			respondWithError(w, http.StatusNotFound, errors.New("User not found"))
@@ -102,7 +108,7 @@ func (ur *UsersRouter) GetUser(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, u)
 }
 
-func (ur *UsersRouter) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (ur *usersRouter) createUser(w http.ResponseWriter, r *http.Request) {
 	var u user
 	decoder := json.NewDecoder(r.Body)
 
@@ -112,7 +118,7 @@ func (ur *UsersRouter) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := u.createUser(ur.DB); err != nil {
+	if err := u.createUser(ur.db); err != nil {
 		fmt.Println(err)
 		respondWithError(w, http.StatusInternalServerError, err)
 		return
