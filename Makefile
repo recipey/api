@@ -15,8 +15,10 @@ vet: ## Vet all files
 	$(GOCMD) vet $(shell $(GOLIST) ./... | grep -v /vendor/)
 get:
 	$(GOLIST) ./... | grep -v /vendor/ | xargs $(GOGET)
-build: ## Need linux build as well
+build:
 	$(GOBUILD) -o ./cmd/server/server -v ./cmd/server/
+build-linux:
+	GOOS=linux $(GOBUILD) -o ./cmd/server/server -v ./cmd/server/
 server:
 	./cmd/server/server
 clean:
@@ -30,4 +32,4 @@ down:
 restart:
 	docker-compose restart
 
-.PHONY: all server clean
+.PHONY: server
