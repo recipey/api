@@ -1,16 +1,19 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	// "github.com/recipey/api/user_registration"
-	"github.com/recipey/api"
 	"github.com/recipey/api/postgres"
+	"github.com/recipey/api/server"
+	"github.com/recipey/api/user_registration"
 )
 
 // TODO: impl server command
@@ -23,27 +26,51 @@ import (
 // main will define a root route to use routes provided by other contexts
 // pass in args to define what the repository will use for db conn
 func main() {
+	// TODO: use env vars
 	psqlInfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s",
 		`db`, `recipey`, `recipey`, `recipey_dev`, `disable`)
 	db, _ := sql.Open("postgres", psqlInfo)
 	defer db.Close()
 
 	var (
-		users, _ = postgres.NewUserRepository(db)
+		usersRepo, _ = postgres.NewUserRepository(db)
 	)
 
-	fmt.Println("INSERT NEW USER")
-	user := api.NewUser("foo", "foo@bar.com")
-	users.Store(user)
-	fmt.Println("DONE INSERT NEW USER")
+	// UserRegistration service
+	userRegistrationService := userregistration.NewUserRegistrationService(usersRepo)
 
-	fmt.Println("ALL USERS!!")
-	fmt.Println(users.FindAll())
-	fmt.Println("DONE ALL USERS!!")
+	// Build a server instance with dependencies
+	recipeyServer := server.New(userRegistrationService)
+
+	srv := &http.Server{
+		Addr:         "0.0.0.0:8080",
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      recipeyServer.Router,
+	}
+
+	// Run server in goroutine so it doesn't block
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	// Wait here until CTRL-C or other term signal is received.
 	log.Println("Recipey API is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	// Block until signal received
 	<-sc
+
+	// Create a deadline to wait for
+	gracefulTimeout := time.Second * 15
+	ctx, cancel := context.WithTimeout(context.Background(), gracefulTimeout)
+	defer cancel()
+
+	// Doesn't block if srv has no connections
+	srv.Shutdown(ctx)
+	log.Println("Shutting down server...")
+	os.Exit(0)
 }

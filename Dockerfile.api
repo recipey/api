@@ -1,6 +1,8 @@
 # Use this Dockerfile to setup the development environment for api
 FROM golang:1.12.5-alpine3.9 AS dev
 
+ENV GO111MODULE on
+
 # Install bash shell
 RUN apk update
 RUN apk upgrade
@@ -33,4 +35,4 @@ WORKDIR /go/src/github.com/recipey/api/
 COPY . /go/src/github.com/recipey/api/
 RUN make clean
 RUN make get
-RUN make build-linux
+RUN make build

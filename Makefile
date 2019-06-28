@@ -27,9 +27,15 @@ docker-build:
 	docker build . -f Dockerfile.api -t ${DOCKER_IMAGE_NAME}
 up:
 	docker-compose up
+upbuild:
+	docker-compose up --build
 down:
 	docker-compose down
 restart:
 	docker-compose restart
+bash_api:
+	docker-compose exec api bash
+bash_db:
+	docker-compose exec db bash
 
 .PHONY: server

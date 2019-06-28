@@ -6,7 +6,7 @@ import (
 
 // Service exposes API for this bounded context
 type Service interface {
-	RegisterUser(user api.User) error
+	RegisterUser(user *api.User) error
 }
 
 type service struct {
@@ -14,7 +14,13 @@ type service struct {
 }
 
 // RegisterUser registers user in storage
-func (s service) RegisterUser(username, email string) error {
-	user := api.NewUser(username, email)
+func (s service) RegisterUser(user *api.User) error {
 	return s.users.Store(user)
+}
+
+// NewUserRegistrationService returns a new user registration service
+func NewUserRegistrationService(ur api.UserRepository) Service {
+	return &service{
+		users: ur,
+	}
 }
