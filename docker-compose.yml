@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
-    # command: bash -c "make server"
-    command: bash -c "tail -f /dev/null"
+    command: bash -c "make server"
+    # command: bash -c "tail -f /dev/null"
     volumes:
       - .:/go/src/github.com/recipey/api
     environment:

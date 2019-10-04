@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/lib/pq" // import so the init() function runs to setup postgres driver
+
 	"github.com/recipey/api/postgres"
 	"github.com/recipey/api/server"
 	"github.com/recipey/api/user_registration"

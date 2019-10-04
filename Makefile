@@ -6,6 +6,8 @@ GOCLEAN=$(GOCMD) clean
 GOLINT=golint
 GOBINARY=recipey_api
 DOCKER_IMAGE_NAME=recipey_api
+MIGRATE_CMD=migrate
+MIGRATION_DIR=cmd/db_migration/migrations
 
 all: clean get check docker-build build
 check: lint vet
@@ -33,9 +35,23 @@ down:
 	docker-compose down
 restart:
 	docker-compose restart
-bash_api:
+restart-api:
+	$(DC) restart api
+bash-api:
 	docker-compose exec api bash
-bash_db:
+bash-db:
 	docker-compose exec db bash
+migrate-create:
+ifdef name
+	$(MIGRATE_CMD) create -ext sql -dir $(MIGRATION_DIR) $(name)
+else
+	@echo "name=<name_of_your_migration> required as an argument"
+endif
+migrate-up:
+	$(MIGRATE_CMD) -path $(MIGRATION_DIR) -database $(APP_DB_URL) up
+migrate-down:
+	$(MIGRATE_CMD) -path $(MIGRATION_DIR) -database $(APP_DB_URL) down
+migrate-force:
+	$(MIGRATE_CMD) -path $(MIGRATION_DIR) -database $(APP_DB_URL) force
 
 .PHONY: server
